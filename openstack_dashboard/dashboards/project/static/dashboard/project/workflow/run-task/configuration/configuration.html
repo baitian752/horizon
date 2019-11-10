@@ -1,0 +1,51 @@
+<div ng-controller="RunTaskConfigurationController as ctrl">
+
+  <div class="form-group">
+    <label class="control-label" for="task-name">
+      <translate>TASK NAME</translate>
+      <span class="hz-icon-required fa fa-asterisk"></span>
+    </label>
+    <input id="vcpus" name="task_name" type="text" class="form-control"
+           ng-model="model.newInstanceSpec.meta.task_name" ng-required="true">
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="vcpus">
+      <translate>VCPUS</translate>
+      <span class="hz-icon-required fa fa-asterisk"></span>
+    </label>
+    <input id="vcpus" name="vcpus" type="number" class="form-control"
+           ng-model="model.newInstanceSpec.vcpus" ng-required="true">
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="ram">
+      <translate>RAM</translate>
+      <span class="hz-icon-required fa fa-asterisk"></span>
+    </label>
+    <input id="ram" name="ram" type="number" class="form-control"
+           ng-model="model.newInstanceSpec.ram" ng-required="true">
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="disk">
+      <translate>DISK</translate>
+      <span class="hz-icon-required fa fa-asterisk"></span>
+    </label>
+    <input id="disk" name="disk" type="number" class="form-control"
+           ng-model="model.newInstanceSpec.disk" ng-required="true">
+  </div>
+
+  <p class="step-description" translate>
+    You can customize your instance after it has launched using the options available here.
+    "Customization Script" is analogous to "User Data" in other systems.
+  </p>
+
+  <load-edit title="{$ ctrl.title $}"
+             model="model.newInstanceSpec.user_data"
+             max-bytes="{$ ctrl.MAX_SCRIPT_SIZE $}"
+             key="user-data"
+             rows=8>
+  </load-edit>
+
+</div>

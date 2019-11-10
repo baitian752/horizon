@@ -1,0 +1,217 @@
+- job:
+    name: horizon-openstack-tox-base
+    parent: openstack-tox
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+      - ^horizon/locale/.*$
+      - ^openstack_dashboard/locale/.*$
+      - ^openstack_auth/locale/.*$
+
+- job:
+    name: horizon-openstack-tox-python3-django111
+    parent: horizon-openstack-tox-base
+    vars:
+      tox_envlist: py3-dj111
+    required-projects:
+      - name: openstack/horizon
+
+- job:
+    name: horizon-selenium-headless
+    parent: horizon-openstack-tox-base
+    pre-run: playbooks/horizon-selenium-headless/pre.yaml
+    vars:
+      tox_envlist: selenium-headless
+
+- job:
+    name: horizon-integration-tests
+    parent: devstack
+    pre-run: playbooks/horizon-devstack-integration/pre.yaml
+    run: playbooks/horizon-devstack-integration/run.yaml
+    post-run: playbooks/horizon-devstack-integration/post.yaml
+    roles:
+      - zuul: openstack-infra/devstack
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+    vars:
+      devstack_services:
+        horizon: true
+      tox_envlist: integration
+
+- job:
+    name: horizon-dsvm-tempest-plugin
+    parent: devstack-tempest
+    required-projects:
+      - name: openstack/horizon
+      - name: openstack/tempest
+      - name: openstack/tempest-horizon
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+      - ^horizon/locale/.*$
+      - ^openstack_dashboard/locale/.*$
+      - ^openstack_auth/locale/.*$
+      # Test codes are not related to tempest tests
+      # as tempest is defined in a separete repository
+      - ^horizon/test/.*$
+      - ^openstack_auth/tests/.*$
+      - ^openstack_dashboard/test/.*$
+      - ^openstack_dashboard/dashboards/.*/tests.py$
+    vars:
+      devstack_localrc:
+        TEMPEST_PLUGINS: "{{ ansible_user_dir }}/src/opendev.org/openstack/tempest-horizon"
+        USE_PYTHON3: true
+      devstack_services:
+        horizon: true
+        tempest: true
+      tempest_concurrency: 2
+      tempest_test_regex: horizon
+      tox_envlist: all
+
+- job:
+    name: horizon-dsvm-tempest-plugin-py27
+    parent: horizon-dsvm-tempest-plugin
+    vars:
+      devstack_localrc:
+        USE_PYTHON3: false
+
+- job:
+    # Security testing for known issues
+    name: horizon-tox-bandit-baseline
+    parent: openstack-tox
+    timeout: 2400
+    vars:
+      tox_envlist: bandit-baseline
+    irrelevant-files:
+      - ^.*\.rst$
+      - ^.*\locale/.*$
+      - ^doc/.*$
+      - ^releasenotes/.*$
+      - ^setup.cfg$
+      - ^tools/.*$
+
+- job:
+    name: nodejs4-npm-run-lint
+    parent: nodejs-npm-run-lint
+    description: |
+      Run lint using Node 4 for horizon plugins.
+    vars:
+      node_version: 4
+    nodeset: ubuntu-xenial
+    required-projects:
+      openstack/horizon
+
+- job:
+    name: nodejs4-npm-run-test
+    parent: nodejs-npm-run-test
+    description: |
+      Run test using Node 4 for horizon plugins.
+    vars:
+      node_version: 4
+    nodeset: ubuntu-xenial
+    required-projects:
+      openstack/horizon
+
+- job:
+    name: nodejs10-npm-run-lint
+    parent: nodejs-npm-run-lint
+    description: |
+      Run lint using Node 10 for horizon plugins.
+    vars:
+      node_version: 10
+    nodeset: ubuntu-bionic
+    required-projects:
+      openstack/horizon
+
+- job:
+    name: nodejs10-npm-run-test
+    parent: nodejs-npm-run-test
+    description: |
+      Run test using Node 10 for horizon plugins.
+    vars:
+      node_version: 10
+    nodeset: ubuntu-bionic
+    required-projects:
+      openstack/horizon
+
+- project-template:
+    name: horizon-nodejs4-jobs
+    description: |
+      Run lint and test jobs using Node 4 for horizon plugins.
+    check:
+      jobs:
+        - nodejs4-npm-run-lint
+        - nodejs4-npm-run-test
+    gate:
+      jobs:
+        - nodejs4-npm-run-lint
+        - nodejs4-npm-run-test
+
+- project-template:
+    name: horizon-nodejs4-jobs-nonvoting
+    description: |
+      Run lint and test jobs using Node 4 for horizon plugins.
+    check:
+      jobs:
+        - nodejs4-npm-run-lint:
+            voting: false
+        - nodejs4-npm-run-test:
+            voting: false
+
+- project-template:
+    name: horizon-nodejs10-jobs
+    description: |
+      Run lint and test jobs using Node 10 (LTS) for horizon plugins.
+    check:
+      jobs:
+        - nodejs10-npm-run-lint
+        - nodejs10-npm-run-test
+    gate:
+      jobs:
+        - nodejs10-npm-run-lint
+        - nodejs10-npm-run-test
+
+- project-template:
+    name: horizon-nodejs10-jobs-nonvoting
+    description: |
+      Run lint and test jobs using Node 10 (LTS) for horizon plugins.
+    check:
+      jobs:
+        - nodejs10-npm-run-lint:
+            voting: false
+        - nodejs10-npm-run-test:
+            voting: false
+
+- project:
+    templates:
+      - check-requirements
+      - horizon-nodejs4-jobs
+      - openstack-lower-constraints-jobs
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - openstack-python36-jobs
+      - openstack-python37-jobs
+      - periodic-stable-jobs
+      - publish-openstack-docs-pti
+      - release-notes-jobs-python3
+    check:
+      jobs:
+        - horizon-openstack-tox-python3-django111
+        - horizon-selenium-headless:
+            voting: false
+        - horizon-integration-tests:
+            voting: false
+        - horizon-dsvm-tempest-plugin
+        - horizon-dsvm-tempest-plugin-py27
+        - horizon-tox-bandit-baseline:
+            voting: false
+    gate:
+      queue: horizon
+      jobs:
+        - horizon-openstack-tox-python3-django111
+        - horizon-dsvm-tempest-plugin
+        - horizon-dsvm-tempest-plugin-py27
