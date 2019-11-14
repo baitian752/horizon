@@ -72,7 +72,6 @@
     ///////////////
 
     function createContainer(params) {
-      console.log(JSON.stringify(params));
       var msg = gettext('Unable to create Container.');
       return apiService.post(containersPath, params).error(error(msg));
     }
