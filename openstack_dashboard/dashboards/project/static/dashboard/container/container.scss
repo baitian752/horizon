@@ -1,0 +1,9 @@
+@import "containers/containers";
+@import "hosts/hosts";
+
+.batch-action {
+  float: right;
+  action-list {
+    padding-left: 0.3em;
+  }
+}

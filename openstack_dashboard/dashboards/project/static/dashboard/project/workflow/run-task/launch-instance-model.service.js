@@ -44,7 +44,8 @@
     'horizon.dashboard.project.workflow.run-task.boot-source-types',
     'horizon.framework.widgets.toast.service',
     'horizon.app.core.openstack-service-api.policy',
-    'horizon.dashboard.project.workflow.run-task.step-policy'
+    'horizon.dashboard.project.workflow.run-task.step-policy',
+    'horizon.app.core.openstack-service-api.zun'
   ];
 
   /**
@@ -88,7 +89,8 @@
     bootSourceTypes,
     toast,
     policy,
-    stepPolicy
+    stepPolicy,
+    zunAPI
   ) {
 
     var initPromise;
@@ -133,6 +135,7 @@
        */
 
       availabilityZones: [],
+      virtualization: ['Virtual Machine', 'Docker'],
       flavors: [],
       allowedBootSources: [],
       images: [],
@@ -163,7 +166,7 @@
        */
       loaded: {
         // Availability Zones on Details tab
-        availabilityZones: false
+        availabilityZones: false,
       },
 
       /**
@@ -210,10 +213,11 @@
         vol_delete_on_instance_delete: false,
         vol_size: 1,
         
-        meta: {}
+        meta: {},
         // vcpus: null,
         // ram: null,
         // disk: null
+        virtualization: null
       };
     }
 
@@ -250,6 +254,7 @@
       model.newInstanceSpec.networks.push({
         'id': 'df134b9a-67d7-4384-955d-110477943d75'
       });
+      model.newInstanceSpec.virtualization = model.virtualization[0];
       // model.newInstanceSpec.meta.task_name = "test_task_name";
       // model.newInstanceSpec.vcpus = 2;
       // model.newInstanceSpec.ram = 1000;
@@ -350,8 +355,31 @@
       setFinalSpecServerGroup(finalSpec);
       setFinalSpecSchedulerHints(finalSpec);
       setFinalSpecMetadata(finalSpec);
-
-      return novaAPI.createServer(finalSpec).then(successMessage);
+      
+      if (finalSpec.virtualization === "Virtual Machine") {
+        return novaAPI.createServer(finalSpec).then(successMessage);
+      } else {
+        return zunAPI.createContainer(
+                  {
+                    "name": finalSpec.meta.task_name,
+                    "image": "cirros",
+                    "image_driver": "docker",
+                    "command": finalSpec.user_data,
+                    "run": true,
+                    // "cpu": finalSpec.vcpus,
+                    // "memory": finalSpec.ram,
+                    "auto_heal": false,
+                    "mounts": [],
+                    "security_groups": [
+                        "default"
+                    ],
+                    "interactive": true,
+                    "hints": {},
+                    // "disk": finalSpec.disk,
+                    "nets": []
+                  }
+               ).then(successMessage);
+      }
     }
 
     function successMessage() {

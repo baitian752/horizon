@@ -62,6 +62,7 @@ LOG = logging.getLogger(__name__)
 class IndexView(tables.PagedTableMixin, tables.DataTableView):
     table_class = project_tables.InstancesTable
     page_title = _("Tasks")
+    template_name = 'project/tasks/run_task_data_table_view.html'
 
     def has_prev_data(self, table):
         return getattr(self, "_prev", False)

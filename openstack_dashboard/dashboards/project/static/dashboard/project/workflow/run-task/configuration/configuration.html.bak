@@ -24,7 +24,9 @@
       <span class="hz-icon-required fa fa-asterisk"></span>
     </label>
     <input id="ram" name="ram" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.ram" ng-required="true">
+           ng-model="model.newInstanceSpec.ram" ng-required="true"
+           validate-number-min="4">
+    <span ng-if="model.newInstanceSpec.ram < 4" style="color: brown;"><span ng-bind="model.newInstanceSpec.ram"></span> is less than the allowed minimum of 4</span>
   </div>
 
   <div class="form-group">
