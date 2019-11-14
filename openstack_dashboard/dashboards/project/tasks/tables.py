@@ -88,16 +88,16 @@ class DeleteInstance(policy.PolicyTargetMixin, tables.DeleteAction):
     @staticmethod
     def action_present(count):
         return ungettext_lazy(
-            u"Delete Task",
-            u"Delete Tasks",
+            u"Delete Instance",
+            u"Delete Instances",
             count
         )
 
     @staticmethod
     def action_past(count):
         return ungettext_lazy(
-            u"Scheduled deletion of Task",
-            u"Scheduled deletion of Tasks",
+            u"Scheduled deletion of Instance",
+            u"Scheduled deletion of Instances",
             count
         )
 

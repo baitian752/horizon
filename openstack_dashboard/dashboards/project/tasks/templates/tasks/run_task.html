@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block main %}{{ table.render }}
+<hz-resource-panel resource-type-name="OS::Horizon::Project::RunTask::Container">
+  <hz-resource-table resource-type-name="OS::Horizon::Project::RunTask::Container"
+                     track-by="trackBy"></hz-resource-table>
+</hz-resource-panel>
+<script>
+$(function() {
+  var taskHeader = document.querySelector(".page-header");
+
+  var vmHeader = document.createElement("h3");
+  vmHeader.innerHTML = "Virtual Machines";
+  taskHeader.parentNode.insertBefore(vmHeader, taskHeader.nextSibling);
+
+  var containerHeader = document.querySelector("hz-resource-panel").querySelector("h1");
+  containerHeader.outerHTML = "<div><h3 class=\"ng-binding\">Containers</h3></div>";
+
+  var runTaskLabel = document.querySelector("#tasks__action_launch-ng");
+  var runTaskLabelDiv = document.createElement("div");
+  runTaskLabelDiv.setAttribute("style", "text-align: right;");
+  runTaskLabelDiv.append(runTaskLabel);
+  vmHeader.parentNode.insertBefore(runTaskLabelDiv, vmHeader);
+  // runTaskLabel.setAttribute("style", "text-align: right;");
+  // runTaskLabel.outerHTML = "<div style=\"text-align: right;\">" + runTaskLabel.outerHTML + "</div>"; 
+
+});
+</script>
+{% endblock %}

@@ -244,8 +244,6 @@
       initializeNewInstanceSpec();
       initializeLoadStatus();
 
-      model.newInstanceSpec.description = "test_description";
-      model.newInstanceSpec.source_id = "47589dc9-003a-4b6e-bb34-ed1854036f2c";
       // model.newInstanceSpec.flavor_id = "42";
       model.newInstanceSpec.source_type = {
         type: "image",
@@ -339,8 +337,9 @@
 
     function createInstance() {
 
-      setDefaultFlavorID();
-      setImageSourceName();
+      setFlavorID();
+      setInstanceImage();
+      setInstanceNetwork();
 
       var finalSpec = angular.copy(model.newInstanceSpec);
 
@@ -362,7 +361,7 @@
         return zunAPI.createContainer(
                   {
                     "name": finalSpec.meta.task_name,
-                    "image": "cirros",
+                    "image": "ubuntu",
                     "image_driver": "docker",
                     "command": finalSpec.user_data,
                     "run": true,
@@ -376,7 +375,7 @@
                     "interactive": true,
                     "hints": {},
                     // "disk": finalSpec.disk,
-                    "nets": []
+                    "nets": [],
                   }
                ).then(successMessage);
       }
@@ -936,7 +935,7 @@
         });
     }
 
-    function setDefaultFlavorID() {
+    function setFlavorID() {
       var vcpus = model.newInstanceSpec.vcpus;
       var ram = model.newInstanceSpec.ram;
       var disk = model.newInstanceSpec.disk;
@@ -955,20 +954,56 @@
           }
         },
         error: function (e) {
+          console.log(e);
         }
       });
     }
 
-    function setImageSourceName() {
+    function setInstanceImage() {
       $.ajax({
         async: false,
         type: "GET",
-        url: "/api/glance/images/" + model.newInstanceSpec.source_id + "/",
+        url: "/api/glance/images/",
         contentType: "application/json;charset=UTF-8",
         success: function (response) {
-          model.newInstanceSpec.name = response.name;
+          var images = response.items;
+          model.newInstanceSpec.source_id = images[0].id;
+          model.newInstanceSpec.name = images[0].name;
+          for (var image of images) {
+            if (image.name.toLowerCase().indexOf("ubuntu") !== -1) {
+              model.newInstanceSpec.source_id = image.id;
+              model.newInstanceSpec.name = image.name;
+              break;
+            }
+          }
         },
         error: function (e) {
+          console.log(e);
+        }
+      });
+    }
+
+    function setInstanceNetwork() {
+      $.ajax({
+        async: false,
+        type: "GET",
+        url: "/api/neutron/networks/",
+        contentType: "application/json;charset=UTF-8",
+        success: function (response) {
+          
+          var networks = response.items;
+          model.newInstanceSpec.networks.push({
+            'id': networks[0].id
+          });
+          for (var network of networks) {
+            if (network.router__external === false) {
+              model.newInstanceSpec.networks[0].id = network.id;
+              break;
+            }
+          }
+        },
+        error: function (e) {
+          console.log(e);
         }
       });
     }
