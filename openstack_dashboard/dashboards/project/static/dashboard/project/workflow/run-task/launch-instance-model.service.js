@@ -244,19 +244,11 @@
       initializeNewInstanceSpec();
       initializeLoadStatus();
 
-      // model.newInstanceSpec.flavor_id = "42";
       model.newInstanceSpec.source_type = {
         type: "image",
         label: "Image"
       };
-      model.newInstanceSpec.networks.push({
-        'id': 'df134b9a-67d7-4384-955d-110477943d75'
-      });
       model.newInstanceSpec.virtualization = model.virtualization[0];
-      // model.newInstanceSpec.meta.task_name = "test_task_name";
-      // model.newInstanceSpec.vcpus = 2;
-      // model.newInstanceSpec.ram = 1000;
-      // model.newInstanceSpec.disk = 10;
 
       if (model.initializing) {
         promise = initPromise;
@@ -377,7 +369,13 @@
                     // "disk": finalSpec.disk,
                     "nets": [],
                   }
-               ).then(successMessage);
+               ).then(function() {
+                  var numberInstances = model.newInstanceSpec.instance_count;
+                  var message = ngettext('Scheduled creation of %s container.',
+                                        'Scheduled creation of %s containers.',
+                                        numberInstances);
+                  toast.add('info', interpolate(message, [numberInstances]));
+              });
       }
     }
 
@@ -990,7 +988,6 @@
         url: "/api/neutron/networks/",
         contentType: "application/json;charset=UTF-8",
         success: function (response) {
-          
           var networks = response.items;
           model.newInstanceSpec.networks.push({
             'id': networks[0].id
