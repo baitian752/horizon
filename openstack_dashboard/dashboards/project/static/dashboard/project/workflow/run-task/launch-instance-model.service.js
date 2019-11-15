@@ -357,8 +357,8 @@
                     "image_driver": "docker",
                     "command": finalSpec.user_data,
                     "run": true,
-                    // "cpu": finalSpec.vcpus,
-                    // "memory": finalSpec.ram,
+                    "cpu": finalSpec.vcpus,
+                    "memory": finalSpec.ram,
                     "auto_heal": false,
                     "mounts": [],
                     "security_groups": [

@@ -15,25 +15,31 @@
       <span class="hz-icon-required fa fa-asterisk"></span>
     </label>
     <input id="vcpus" name="vcpus" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.vcpus" ng-required="true">
+           ng-model="model.newInstanceSpec.vcpus" ng-required="true"
+           validate-number-min="1">
+    <span ng-if="model.newInstanceSpec.vcpus < 1" style="color: brown;"><span ng-bind="model.newInstanceSpec.vcpus"></span> is less than the allowed minimum of 1</span>
   </div>
 
   <div class="form-group">
     <label class="control-label" for="ram">
-      <translate>RAM</translate>
+      <translate>RAM (MiB)</translate>
       <span class="hz-icon-required fa fa-asterisk"></span>
     </label>
     <input id="ram" name="ram" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.ram" ng-required="true">
+           ng-model="model.newInstanceSpec.ram" ng-required="true"
+           validate-number-min="512">
+    <span ng-if="model.newInstanceSpec.ram < 512" style="color: brown;"><span ng-bind="model.newInstanceSpec.ram"></span> is less than the allowed minimum of 512</span>
   </div>
 
   <div class="form-group">
     <label class="control-label" for="disk">
-      <translate>Disk</translate>
+      <translate>Disk (GiB)</translate>
       <span class="hz-icon-required fa fa-asterisk"></span>
     </label>
     <input id="disk" name="disk" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.disk" ng-required="true">
+           ng-model="model.newInstanceSpec.disk" ng-required="true"
+           validate-number-min="2">
+    <span ng-if="model.newInstanceSpec.disk < 2" style="color: brown;"><span ng-bind="model.newInstanceSpec.disk"></span> is less than the allowed minimum of 2</span>
   </div>
 
   <div class="form-group">
