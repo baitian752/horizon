@@ -346,7 +346,7 @@
       setFinalSpecServerGroup(finalSpec);
       setFinalSpecSchedulerHints(finalSpec);
       setFinalSpecMetadata(finalSpec);
-      
+
       if (finalSpec.virtualization === "Virtual Machine") {
         return novaAPI.createServer(finalSpec).then(successMessage);
       } else {

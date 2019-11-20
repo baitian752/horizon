@@ -39,6 +39,7 @@ from openstack_dashboard.api import network
 from openstack_dashboard.api import neutron
 from openstack_dashboard.api import nova
 from openstack_dashboard.api import swift
+from openstack_dashboard.api import task_scheduler
 
 
 __all__ = [
