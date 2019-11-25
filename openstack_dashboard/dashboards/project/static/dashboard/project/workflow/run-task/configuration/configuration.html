@@ -24,7 +24,9 @@
         <span ng-if="model.newInstanceSpec.cpu < 1" style="color: brown;"><span ng-bind="model.newInstanceSpec.cpu"></span> is less than the allowed minimum of 1</span>
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="ram">
@@ -50,7 +52,9 @@
         <span ng-if="model.newInstanceSpec.disk < 2" style="color: brown;"><span ng-bind="model.newInstanceSpec.disk"></span> is less than the allowed minimum of 2</span>
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="estimated-time-of-execution">
@@ -70,7 +74,9 @@
               ng-model="model.newInstanceSpec.execution_frequency">
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="main-job">
@@ -92,7 +98,9 @@
         </select>
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="priority">
@@ -116,7 +124,6 @@
         </select>
       </div>
     </div>
-
   </div>
 
   <p class="step-description" translate>
