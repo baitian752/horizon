@@ -1,19 +1,50 @@
 import time
 import threading
-import requests
 import json
 import sqlite3
 
+from keystoneauth1 import identity
+from keystoneauth1 import session
 from novaclient import client as nova_client
 from zunclient import client as zun_client
+from neutronclient.v2_0 import client as neutron_client
+
+from horizon.utils.memoized import memoized
+from openstack_dashboard.contrib.developer.profiler import api as profiler
+
+from openstack_dashboard.api._nova import novaclient
+from zun_ui.api.client import zunclient, neutronclient
+
+
+@memoized
+def taskclient(request):
+    if request.DATA.virtualization == 'Virtual Machine':
+        return novaclient(request)
+    elif request.DATA.virtualization == 'Docker':
+        return zunclient(request)
+
+
+@profiler.trace
+def task_create(request):
+    return taskclient(request).services.
+
+
+@profiler.trace
+def task_delete(request, task_id):
+    return taskclient(request).tasks.delete(task_id)
+
+
 
 
 class Schedule(threading.Thread):
 
     def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
         super(Schedule, self).__init__()
-        self.nova = nova_client.Client(**self.get_credential(admin_openrc, '2'))
-        self.zun = zun_client.Client(**self.get_credential(admin_openrc, '1'))
+        self.auth = identity.Password(**self.get_credential(admin_openrc=admin_openrc))
+        self.sess = session.Session(auth=self.auth)
+        self.nova = nova_client.Client(version='2', session=self.sess)
+        self.zun = zun_client.Client(version='2', session=self.sess)
+        self.neutron = neutron_client.Client(session=self.sess)
         self.hypervisors = self.nova.hypervisors.list()
 
     def run(self):
@@ -49,26 +80,29 @@ class Schedule(threading.Thread):
                 #     self.check_resources(cpu, memory, flavor.disk)
                 #     self.run_container(name, image, command, cpu, memory)
             self.database.delete(task.get('id', 0))
-    
-    def get_credential(self, admin_openrc, version):
-        credential = {'version': version}
+
+    def get_credential(self, admin_openrc):
+        credential = {}
         with open(admin_openrc, 'r') as f:
             for line in f.readlines():
                 data = line.split()[1]
                 k, v = data.split('=', 1)
                 credential[k[3:].lower()] = v
-        credential.pop('identity_api_version')
-        credential.pop('auth_plugin')
-        credential.pop('interface')
-        credential.pop('tenant_name')
-        return credential
+        return {
+            'username': credential['username'],
+            'password': credential['password'],
+            'project_name': credential['project_name'],
+            'project_domain_name': credential['project_domain_name'],
+            'user_domain_name': credential['user_domain_name'],
+            'auth_url': credential['auth_url'],
+        }
 
     def run_server(self, name, image, flavor, userdata, meta, nics):
         self.nova.servers.create(name=name, image=image, flavor=flavor,
                                  userdata=userdata, meta=meta, nics=nics)
 
     def run_container(self, name, image, command, cpu, memory):
-        self.zun.containers.create(name=name, image=image, command=command, 
+        self.zun.containers.create(name=name, image=image, command=command,
                                    cpu=cpu, memory=memory)
 
     def check_resources(self, vcpus, ram, disk):
@@ -85,20 +119,32 @@ class Schedule(threading.Thread):
 
 
 class Database(object):
-    
+
     def __init__(self, table_name):
         self.table_name = table_name
         self.conn = sqlite3.connect('tasks.db')
         self.cursor = self.conn.cursor()
 
     def create_table(self):
-        self.cursor.execute(''' select count(name) from sqlite_master 
+        self.cursor.execute(''' select count(name) from sqlite_master
                                 where type='table' and name='%s' ''' % self.table_name)
         if self.cursor.fetchone()[0] == 0:
             self.cursor.execute(''' create table %s
                                     (id integer primary key autoincrement,
+                                     name char(128) not null,
+                                     status char(50) not null,
+                                     virtualization char(50) not null,
+                                     cpu int not null,
+                                     ram int not null,
+                                     disk int not null,
+                                     job text not null,
+                                     estimated_time_of_execution int not null,
+                                     execution_frequency int not null,
+                                     main_job char(128) not null,
+                                     require_hardware int not null,
+                                     priority_coef int not null,
                                      priority int not null,
-                                     config text not null)''' % self.table_name)
+                                     created_time datetime not null)''' % self.table_name)
         self.conn.commit()
 
     def add(self, priority, config):

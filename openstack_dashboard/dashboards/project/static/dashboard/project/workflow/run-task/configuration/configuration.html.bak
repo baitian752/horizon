@@ -1,51 +1,122 @@
 <div ng-controller="RunTaskConfigurationController as ctrl">
 
-  <div class="form-group">
-    <label class="control-label" for="task-name">
-      <translate>Task Name</translate>
-      <span class="hz-icon-required fa fa-asterisk"></span>
-    </label>
-    <input id="vcpus" name="task_name" type="text" class="form-control"
-           ng-model="model.newInstanceSpec.meta.task_name" ng-required="true">
-  </div>
+  <div class="row">
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="task-name">
+          <translate>Task Name</translate>
+          <span class="hz-icon-required fa fa-asterisk"></span>
+        </label>
+        <input id="task-name" name="task-name" type="text" class="form-control"
+              ng-model="model.newInstanceSpec.meta.task_name" ng-required="true">
+      </div>
+    </div>
 
-  <div class="form-group">
-    <label class="control-label" for="vcpus">
-      <translate>VCPUs</translate>
-      <span class="hz-icon-required fa fa-asterisk"></span>
-    </label>
-    <input id="vcpus" name="vcpus" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.vcpus" ng-required="true">
-  </div>
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="vcpus">
+          <translate>VCPUs</translate>
+          <span class="hz-icon-required fa fa-asterisk"></span>
+        </label>
+        <input id="vcpus" name="vcpus" type="number" class="form-control"
+              ng-model="model.newInstanceSpec.vcpus" ng-required="true"
+              validate-number-min="1">
+        <span ng-if="model.newInstanceSpec.vcpus < 1" style="color: brown;"><span ng-bind="model.newInstanceSpec.vcpus"></span> is less than the allowed minimum of 1</span>
+      </div>
+    </div>
 
-  <div class="form-group">
-    <label class="control-label" for="ram">
-      <translate>RAM</translate>
-      <span class="hz-icon-required fa fa-asterisk"></span>
-    </label>
-    <input id="ram" name="ram" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.ram" ng-required="true"
-           validate-number-min="4">
-    <span ng-if="model.newInstanceSpec.ram < 4" style="color: brown;"><span ng-bind="model.newInstanceSpec.ram"></span> is less than the allowed minimum of 4</span>
-  </div>
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="ram">
+          <translate>RAM (MiB)</translate>
+          <span class="hz-icon-required fa fa-asterisk"></span>
+        </label>
+        <input id="ram" name="ram" type="number" class="form-control"
+              ng-model="model.newInstanceSpec.ram" ng-required="true"
+              validate-number-min="512">
+        <span ng-if="model.newInstanceSpec.ram < 512" style="color: brown;"><span ng-bind="model.newInstanceSpec.ram"></span> is less than the allowed minimum of 512</span>
+      </div>
+    </div>
 
-  <div class="form-group">
-    <label class="control-label" for="disk">
-      <translate>Disk</translate>
-      <span class="hz-icon-required fa fa-asterisk"></span>
-    </label>
-    <input id="disk" name="disk" type="number" class="form-control"
-           ng-model="model.newInstanceSpec.disk" ng-required="true">
-  </div>
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="disk">
+          <translate>Disk (GiB)</translate>
+          <span class="hz-icon-required fa fa-asterisk"></span>
+        </label>
+        <input id="disk" name="disk" type="number" class="form-control"
+              ng-model="model.newInstanceSpec.disk" ng-required="true"
+              validate-number-min="2">
+        <span ng-if="model.newInstanceSpec.disk < 2" style="color: brown;"><span ng-bind="model.newInstanceSpec.disk"></span> is less than the allowed minimum of 2</span>
+      </div>
+    </div>
 
-  <div class="form-group">
-    <label class="control-label" translate for="virtualization">Virtualization</label>
-    <select ng-if="model.virtualization.length !== 0"
-            class="form-control"
-            id="virtualization"
-            ng-options="virt for virt in model.virtualization"
-            ng-model="model.newInstanceSpec.virtualization">
-    </select>
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="estimated-time-of-execution">
+          <translate>Estimated time of execution (hour)</translate>
+        </label>
+        <input id="estimated-time-of-execution" name="estimated-time-of-execution" type="number" class="form-control"
+              ng-model="model.newInstanceSpec.estimated_time_of_execution">
+      </div>
+    </div>
+
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="execution-frequency">
+          <translate>Execution frequency (per week)</translate>
+        </label>
+        <input id="execution-frequency" name="execution-frequency" type="number" class="form-control"
+              ng-model="model.newInstanceSpec.execution_frequency">
+      </div>
+    </div>
+
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="main-job">
+          <translate>Main job</translate>
+        </label>
+        <input id="main-job" name="main-job" type="text" class="form-control"
+              ng-model="model.newInstanceSpec.main_job">
+      </div>
+    </div>
+
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="require-hardware">
+          <translate>Require hardware</translate>
+        </label>
+        <select class="form-control" id="require-hardware"
+            ng-options="item for item in ['Yes', 'No']"
+            ng-model="model.newInstanceSpec.require_hardware">
+        </select>
+      </div>
+    </div>
+
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="priority">
+          <translate>Priority</translate>
+        </label>
+        <select class="form-control" id="priority"
+            ng-options="item for item in [1, 2, 3, 4, 5]"
+            ng-model="model.newInstanceSpec.priority">
+        </select>
+      </div>
+    </div>
+
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" translate for="virtualization">Virtualization</label>
+        <select ng-if="model.virtualization.length !== 0"
+                class="form-control"
+                id="virtualization"
+                ng-options="virt for virt in model.virtualization"
+                ng-model="model.newInstanceSpec.virtualization">
+        </select>
+      </div>
+    </div>
+
   </div>
 
   <p class="step-description" translate>
