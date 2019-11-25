@@ -14,17 +14,19 @@
 
     <div class="col-xs-6">
       <div class="form-group">
-        <label class="control-label" for="vcpus">
+        <label class="control-label" for="cpu">
           <translate>VCPUs</translate>
           <span class="hz-icon-required fa fa-asterisk"></span>
         </label>
-        <input id="vcpus" name="vcpus" type="number" class="form-control"
-              ng-model="model.newInstanceSpec.vcpus" ng-required="true"
+        <input id="cpu" name="cpu" type="number" class="form-control"
+              ng-model="model.newInstanceSpec.cpu" ng-required="true"
               validate-number-min="1">
-        <span ng-if="model.newInstanceSpec.vcpus < 1" style="color: brown;"><span ng-bind="model.newInstanceSpec.vcpus"></span> is less than the allowed minimum of 1</span>
+        <span ng-if="model.newInstanceSpec.cpu < 1" style="color: brown;"><span ng-bind="model.newInstanceSpec.cpu"></span> is less than the allowed minimum of 1</span>
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="ram">
@@ -50,7 +52,9 @@
         <span ng-if="model.newInstanceSpec.disk < 2" style="color: brown;"><span ng-bind="model.newInstanceSpec.disk"></span> is less than the allowed minimum of 2</span>
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="estimated-time-of-execution">
@@ -70,7 +74,9 @@
               ng-model="model.newInstanceSpec.execution_frequency">
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
         <label class="control-label" for="main-job">
@@ -92,15 +98,17 @@
         </select>
       </div>
     </div>
+  </div>
 
+  <div class="row">
     <div class="col-xs-6">
       <div class="form-group">
-        <label class="control-label" for="priority">
+        <label class="control-label" for="priority-coef">
           <translate>Priority</translate>
         </label>
-        <select class="form-control" id="priority"
+        <select class="form-control" id="priority-coef"
             ng-options="item for item in [1, 2, 3, 4, 5]"
-            ng-model="model.newInstanceSpec.priority">
+            ng-model="model.newInstanceSpec.priority_coef">
         </select>
       </div>
     </div>
@@ -111,12 +119,11 @@
         <select ng-if="model.virtualization.length !== 0"
                 class="form-control"
                 id="virtualization"
-                ng-options="virt for virt in model.virtualization"
+                ng-options="item for item in ['Auto', 'Virtual Machine', 'Docker']"
                 ng-model="model.newInstanceSpec.virtualization">
         </select>
       </div>
     </div>
-
   </div>
 
   <p class="step-description" translate>
