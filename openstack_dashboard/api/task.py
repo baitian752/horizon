@@ -26,7 +26,8 @@ def taskclient(request):
 
 @profiler.trace
 def task_create(request):
-    return taskclient(request).services.
+    pass
+    # return taskclient(request).services.
 
 
 @profiler.trace
