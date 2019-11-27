@@ -129,7 +129,7 @@ class Schedule(threading.Thread):
                                  userdata=userdata, meta=meta, nics=nics)
 
     def run_container(self, name, image, command, cpu, memory):
-        self.zun.containers.create(name=name, image=image, command=command,
+        self.zun.containers.run(name=name, image=image, command=command,
                                    cpu=cpu, memory=memory)
 
     def check_resources(self, cpu, ram, disk):
