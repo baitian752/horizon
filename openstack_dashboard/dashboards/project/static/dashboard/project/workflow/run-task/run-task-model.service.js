@@ -51,12 +51,21 @@
         main_job: "Unspecified",
         require_hardware: "No",
         priority: 1,
+
+        precedence_schema: null,
         
       };
     }
     
     function initialize() {
       initializeNewInstanceSpec();
+      apiService.get('/api/tasks/precedence_schema/')
+        .success(function(response, status, headers, config) {
+          model.newInstanceSpec.precedence_schema = response.precedence_schema;
+        })
+        .error(function(response) {
+          model.newInstanceSpec.precedence_schema = 'Execution time'
+        })
     }
 
     function createInstance() {
@@ -75,7 +84,7 @@
 
       return  apiService.post('/api/tasks/', finalSpec)
                 .success(function(response, status, headers, config) {
-                  console.log(response);
+                  // console.log(response);
                 })
                 .error(function(response) {
                   console.log(response);

@@ -174,6 +174,15 @@ class Tasks(object):
                                      priority int not null,
                                      created_timestamp real not null)'''
                                      % self.table_name)
+        self.cursor.execute(''' select count(name) from sqlite_master
+                                where type='table' and name='config' ''')
+        if self.cursor.fetchone()[0] == 0:
+            self.cursor.execute(''' create table config
+                                    (id integer primary key autoincrement,
+                                     precedence_schema character(50) 
+                                     not null) ''')
+            self.cursor.execute(''' insert into config (precedence_schema)
+                                    values ('Execution time') ''')
         self.conn.commit()
 
     def add(self, data):
@@ -216,45 +225,87 @@ class Tasks(object):
         self.conn.commit()
 
     def get_task(self):
-        self.cursor.execute(''' select * from %s where status='ready' and
-                                estimated_time_of_execution=
-                                (select min(estimated_time_of_execution) from %s)
-                                order by created_timestamp asc'''
-                                % (self.table_name, self.table_name))
-        task = self.cursor.fetchone()
-        if task:
-            task = list(task)
-            if task[3] == 'Auto':
-                self.cursor.execute(''' select * from %s where status='finished'
-                                        and job='%s' order by created_timestamp 
-                                        desc ''' % (self.table_name, task[7]))
-                old_task = self.cursor.fetchone()
-                if old_task:
-                    task[3] = old_task[3]
-                elif task[11] == 'Yes':
-                    task[3] = 'Virtual Machine'
-                else:
-                    task[3] = 'Docker'
-            return {
-                'id': task[0],
-                'name': task[1],
-                'status': task[2],
-                'virtualization': task[3],
-                'cpu': task[4],
-                'ram': task[5],
-                'disk': task[6],
-                'job': task[7],
-                'estimated_time_of_execution': task[8],
-                'execution_frequency': task[9],
-                'main_job': task[10],
-                'require_hardware': task[11],
-                'priority': task[12],
-                'created_timestamp': task[13]
-            }
+        precedence_schema = self.get_precedence_schema()
+        if precedence_schema == 'Execution time':
+            self.cursor.execute(''' select * from %s where status='ready'
+                                    and estimated_time_of_execution=
+                                    (select min(estimated_time_of_execution) 
+                                    from %s where status='ready') order by 
+                                    priority desc '''
+                                    % (self.table_name, self.table_name))
+            tasks = self.cursor.fetchall()
+            if not tasks:
+                return
+            task = tasks[0]
+            tasks = [item for item in tasks if item[12] == task[12]]
+            for item in tasks:
+                if item[13] < task[13]:
+                    task = item
+        elif precedence_schema == 'Waiting time':
+            self.cursor.execute(''' select * from %s where status='ready'
+                                    order by created_timestamp asc '''
+                                    % self.table_name)
+            task = self.cursor.fetchone()
+        else: # precedence_schema == 'Priority':
+            self.cursor.execute(''' select * from %s where status='ready' and
+                                    priority=(select max(priority) from %s
+                                    where status='ready') order by 
+                                    estimated_time_of_execution asc '''
+                                    % (self.table_name, self.table_name))
+            tasks = self.cursor.fetchall()
+            if not tasks:
+                return
+            task = tasks[0]
+            tasks = [item for item in tasks if item[8] == task[8]]
+            for item in tasks:
+                if item[8] < task[8]:
+                    task = item
+        if not task:
+            return
+        task = list(task)
+        if task[3] == 'Auto':
+            self.cursor.execute(''' select * from %s where status='finished'
+                                    and job='%s' order by created_timestamp 
+                                    desc ''' % (self.table_name, task[7]))
+            old_task = self.cursor.fetchone()
+            if old_task:
+                task[3] = old_task[3]
+            elif task[11] == 'Yes':
+                task[3] = 'Virtual Machine'
+            else:
+                task[3] = 'Docker'
+        return {
+            'id': task[0],
+            'name': task[1],
+            'status': task[2],
+            'virtualization': task[3],
+            'cpu': task[4],
+            'ram': task[5],
+            'disk': task[6],
+            'job': task[7],
+            'estimated_time_of_execution': task[8],
+            'execution_frequency': task[9],
+            'main_job': task[10],
+            'require_hardware': task[11],
+            'priority': task[12],
+            'created_timestamp': task[13]
+        }
 
     def update_status(self, task_id, status):
         self.cursor.execute(''' update %s set status='%s' where id=%s '''
                                 % (self.table_name, status, task_id))
+        self.conn.commit()
+
+    def get_precedence_schema(self):
+        self.cursor.execute(''' select * from config ''')
+        precedence_schema = self.cursor.fetchone()[1]
+        return precedence_schema
+
+    def update_precedence_schema(self, precedence_schema):
+        self.cursor.execute(''' select * from config ''')
+        config_id = self.cursor.fetchone()[0]
+        self.cursor.execute(''' update config set precedence_schema='%s' where
+                                id=%s ''' % (precedence_schema, config_id))
         self.conn.commit()
 
     def __del__(self):

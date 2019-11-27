@@ -126,6 +126,22 @@
     </div>
   </div>
 
+  <div class="row">
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="precedence-schema">
+          <translate>Precedence schema</translate>
+        </label>
+        <select class="form-control" id="precedence-schema"
+            ng-options="item for item in ['Execution time', 'Waiting time', 'Priority']"
+            ng-model="model.newInstanceSpec.precedence_schema">
+        </select>
+      </div>
+    </div>
+
+    
+  </div>
+
   <p class="step-description" translate>
     You can customize your instance after it has launched using the options available here.
     "Customization Script" is analogous to "User Data" in other systems.
