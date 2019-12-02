@@ -54,12 +54,13 @@ class Schedule(threading.Thread):
         self.hypervisors = self.nova.hypervisors.list()
 
     def run(self):
+        time.sleep(10)
         self.tasks = Tasks('tasks')
         while True:
-            time.sleep(10)
+            time.sleep(3)
             task = self.tasks.get_task()
             while not task:
-                time.sleep(10)
+                time.sleep(3)
                 task = self.tasks.get_task()
             if task['virtualization'] == 'Virtual Machine':
                 image = self.get_image()
@@ -68,8 +69,9 @@ class Schedule(threading.Thread):
                 userdata = task['job']
                 meta = {'task_name': task['name']}
                 nics = [{'net-id': self.get_network_id()}]
+                key_name = self.get_keypair()
                 self.check_resources(flavor.vcpus, flavor.ram, flavor.disk)
-                self.run_server(name, image, flavor, userdata, meta, nics)
+                self.run_server(name, image, flavor, userdata, meta, nics, key_name)
             elif task['virtualization'] == 'Docker':
                 name = task['name']
                 image = 'cirros'
@@ -108,6 +110,15 @@ class Schedule(threading.Thread):
                 break
         return network['id']
 
+    def get_keypair(self):
+        keypairs = self.nova.keypairs.list()
+        keypair = keypairs[0].name
+        for item in keypairs:
+            if item.name == 'mykey':
+                keypair = item.name
+                break
+        return keypair
+
     def get_credential(self, admin_openrc):
         credential = {}
         with open(admin_openrc, 'r') as f:
@@ -124,9 +135,10 @@ class Schedule(threading.Thread):
             'auth_url': credential['auth_url'],
         }
 
-    def run_server(self, name, image, flavor, userdata, meta, nics):
+    def run_server(self, name, image, flavor, userdata, meta, nics, key_name):
         self.nova.servers.create(name=name, image=image, flavor=flavor,
-                                 userdata=userdata, meta=meta, nics=nics)
+                                 userdata=userdata, meta=meta, nics=nics,
+                                 key_name=key_name)
 
     def run_container(self, name, image, command, cpu, memory):
         self.zun.containers.run(name=name, image=image, command=command,
@@ -142,7 +154,7 @@ class Schedule(threading.Thread):
                     flag = True
                     break
             if not flag:
-                time.sleep(10)
+                time.sleep(3)
 
 
 class Tasks(object):
@@ -264,16 +276,20 @@ class Tasks(object):
             return
         task = list(task)
         if task[3] == 'Auto':
-            self.cursor.execute(''' select * from %s where status='finished'
-                                    and job='%s' order by created_timestamp 
-                                    desc ''' % (self.table_name, task[7]))
-            old_task = self.cursor.fetchone()
-            if old_task:
-                task[3] = old_task[3]
-            elif task[11] == 'Yes':
+            if task[11] == 'Yes':
                 task[3] = 'Virtual Machine'
             else:
-                task[3] = 'Docker'
+                self.cursor.execute(''' select * from %s where status='finished'
+                                        and job='%s' order by created_timestamp
+                                        desc ''' % (self.table_name, task[7]))
+                old_task = self.cursor.fetchone()
+                if old_task:
+                    task[3] = old_task[3]
+                else:
+                    task[3] = 'Docker'
+            self.cursor.execute(''' update %s set virtualization='%s' where
+                                    id=%s '''
+                                    % (self.table_name, task[3], task[0]))
         return {
             'id': task[0],
             'name': task[1],

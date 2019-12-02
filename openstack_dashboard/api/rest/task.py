@@ -18,7 +18,7 @@ def format_data(data):
     data['cpu'] = int(ceil(data['cpu']))
     data['ram'] = int(ceil(data['ram']))
     data['disk'] = int(ceil(data['disk']))
-    data['job'] = data['job'].strip() if data['job'] else ''
+    data['job'] = data['job'].strip() if data['job'] else 'echo hello'
     if data['estimated_time_of_execution'] < 0:
         data['estimated_time_of_execution'] = sys.maxint
     if data['execution_frequency'] < 0:
