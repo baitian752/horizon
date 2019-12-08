@@ -40,6 +40,7 @@ from openstack_dashboard.api import neutron
 from openstack_dashboard.api import nova
 from openstack_dashboard.api import swift
 from openstack_dashboard.api import task
+from openstack_dashboard.api import scaling
 
 
 __all__ = [
@@ -52,4 +53,5 @@ __all__ = [
     "nova",
     "swift",
     "task",
+    "scaling",
 ]

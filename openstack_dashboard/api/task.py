@@ -44,13 +44,13 @@ class Schedule(threading.Thread):
 
     def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
         super(Schedule, self).__init__()
-        self.auth = identity.Password(
+        auth = identity.Password(
             **self.get_credential(admin_openrc=admin_openrc))
-        self.sess = session.Session(auth=self.auth)
-        # self.glance = glance_client.Client(version='2', session=self.sess)
-        self.nova = nova_client.Client(version='2', session=self.sess)
-        self.zun = zun_client.Client(version='1', session=self.sess)
-        self.neutron = neutron_client.Client(session=self.sess)
+        sess = session.Session(auth=auth)
+        # self.glance = glance_client.Client(version='2', session=sess)
+        self.nova = nova_client.Client(version='2', session=sess)
+        self.zun = zun_client.Client(version='1', session=sess)
+        self.neutron = neutron_client.Client(session=sess)
         self.hypervisors = self.nova.hypervisors.list()
 
     def run(self):
@@ -74,7 +74,7 @@ class Schedule(threading.Thread):
                 self.run_server(name, image, flavor, userdata, meta, nics, key_name)
             elif task['virtualization'] == 'Docker':
                 name = task['name']
-                image = 'cirros'
+                image = 'ubuntu'
                 command = task['job'].split()
                 cpu = task['cpu']
                 memory = task['ram']
@@ -278,6 +278,8 @@ class Tasks(object):
         if task[3] == 'Auto':
             if task[11] == 'Yes':
                 task[3] = 'Virtual Machine'
+            elif not task[7]:
+                task[3] = 'Docker'
             else:
                 self.cursor.execute(''' select * from %s where status='finished'
                                         and job='%s' order by created_timestamp

@@ -31,6 +31,7 @@ from openstack_dashboard.api.rest import nova
 from openstack_dashboard.api.rest import policy
 from openstack_dashboard.api.rest import swift
 from openstack_dashboard.api.rest import task
+from openstack_dashboard.api.rest import scaling
 
 
 __all__ = [
@@ -44,4 +45,5 @@ __all__ = [
     'policy',
     'swift',
     'task',
+    'scaling',
 ]
