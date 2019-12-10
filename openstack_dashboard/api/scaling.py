@@ -200,7 +200,7 @@ class Stack(object):
 
 class Scaling(threading.Thread):
 
-    fetch_option = '(/ (* 100 (metric cpu rate:mean)) %s)'
+    fetch_option = '(/ (metric cpu rate:mean) %s)'
 
     def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
         super(Scaling, self).__init__()
@@ -214,13 +214,8 @@ class Scaling(threading.Thread):
 
     def run(self):
         self.tasks = Tasks('tasks')
-        i = 1
         while True:
-            print '*' * 50
-            print i
-            print '*' * 50
-            i += 1
-            time.sleep(10)
+            time.sleep(300)
             self.scaling_vms()
             self.scaling_containers()
 
@@ -245,9 +240,15 @@ class Scaling(threading.Thread):
             for instance in instances:
                 server = self.nova.servers.get(instance)
                 flavor = self.nova.flavors.get(server.flavor['id'])
-                divisor = 60 * flavor.vcpus * 10 ** 9
-                datas = self.gnocchi.aggregates.fetch(operations= \
-                    self.fetch_option % divisor, search='id=%s' % instance)
+                divisor = flavor.vcpus * 3e9
+                try:
+                    datas = self.gnocchi.aggregates.fetch(operations= \
+                        self.fetch_option % divisor, search='id=%s' % instance)
+                except Exception as e:
+                    print e.message
+                    scaleup = False
+                    scaledown = False
+                    break
                 if not datas.get('measures', None):
                     scaleup = False
                     scaledown = False
@@ -298,9 +299,6 @@ class Scaling(threading.Thread):
 
     def scaling_containers(self):
         container_uuids = self.tasks.get_autoscaling_containers()
-        print '*' * 50
-        print container_uuids
-        print '*' * 50
         for uuid in container_uuids:
             try:
                 container = self.zun.containers.get(uuid)

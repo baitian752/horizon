@@ -50,7 +50,7 @@ class Schedule(threading.Thread):
                 if task['auto_scaling'] == 'Yes':
                     stack = Stack(admin_openrc=self.admin_openrc)
                     stack.setup_parameters(name, image.name, flavor.name,
-                                network['name'], key_name, task, user_data)
+                                network['name'], key_name, task_name, user_data)
                     stack.launch()
                 else:
                     self.run_server(name, image, flavor, user_data,
