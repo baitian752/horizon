@@ -10,8 +10,8 @@ from gnocchiclient import client as gnocchi_client
 from novaclient import client as nova_client
 from zunclient import client as zun_client
 
-from openstack_dashboard.api.task import get_credential
-from openstack_dashboard.api.task import Tasks
+from openstack_dashboard.api.task_common import get_credential
+from openstack_dashboard.api.task_common import Tasks
 
 
 stack_template = {
@@ -214,7 +214,12 @@ class Scaling(threading.Thread):
 
     def run(self):
         self.tasks = Tasks('tasks')
+        i = 1
         while True:
+            print '*' * 50
+            print i
+            print '*' * 50
+            i += 1
             time.sleep(10)
             self.scaling_vms()
             self.scaling_containers()
@@ -293,6 +298,9 @@ class Scaling(threading.Thread):
 
     def scaling_containers(self):
         container_uuids = self.tasks.get_autoscaling_containers()
+        print '*' * 50
+        print container_uuids
+        print '*' * 50
         for uuid in container_uuids:
             try:
                 container = self.zun.containers.get(uuid)

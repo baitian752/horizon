@@ -46,10 +46,10 @@ class Tasks(generic.View):
         # print 'request.COOKIES: %s' % request.COOKIES
         # print '*' * 30
         data = format_data(request.DATA)
-        api.task.Tasks(api.task.table_name).update_precedence_schema(
-            data['precedence_schema'])
+        tasks = api.task.Tasks('tasks')
+        tasks.update_precedence_schema(data['precedence_schema'])
         data.pop('precedence_schema')
-        api.task.Tasks(api.task.table_name).add(data)
+        tasks.add(data)
         # return {
         #     '1': 2,
         #     '3': 4
