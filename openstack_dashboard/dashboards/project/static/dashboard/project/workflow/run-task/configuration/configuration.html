@@ -139,7 +139,17 @@
       </div>
     </div>
 
-    
+    <div class="col-xs-6">
+      <div class="form-group">
+        <label class="control-label" for="auto-scaling">
+          <translate>Auto Scaling</translate>
+        </label>
+        <select class="form-control" id="auto-scaling"
+            ng-options="item for item in ['Yes', 'No']"
+            ng-model="model.newInstanceSpec.auto_scaling">
+        </select>
+      </div>
+    </div>
   </div>
 
   <p class="step-description" translate>

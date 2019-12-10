@@ -18,7 +18,7 @@ def format_data(data):
     data['cpu'] = int(ceil(data['cpu']))
     data['ram'] = int(ceil(data['ram']))
     data['disk'] = int(ceil(data['disk']))
-    data['job'] = data['job'].strip() if data['job'] else 'echo hello'
+    data['job'] = data['job'].strip() if data['job'] else 'echo Hello OpenStack'
     if data['estimated_time_of_execution'] < 0:
         data['estimated_time_of_execution'] = sys.maxint
     if data['execution_frequency'] < 0:
@@ -30,36 +30,10 @@ def format_data(data):
     return data
 
 
-# @urls.register
-# class Task(generic.View):
-
-#     url_regex = r'tasks/(?P<task_id>[^/]+|default)/$'
-
-#     @rest_utils.ajax()
-#     def get(self, request, task_id):
-
-#         # task = api.task
-#         pass
-
-
 @urls.register
 class Tasks(generic.View):
 
     url_regex = r'tasks/$'
-
-    # @rest_utils.ajax()
-    # def get(self, request):
-
-    #     return {
-    #         'items': [
-    #             {
-    #                 1: 2
-    #             },
-    #             {
-    #                 3: 4
-    #             }
-    #         ]
-    #     }
 
     @rest_utils.ajax(data_required=True)
     def post(self, request):

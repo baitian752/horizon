@@ -53,6 +53,8 @@
         priority: 1,
 
         precedence_schema: null,
+
+        auto_scaling: "No",
         
       };
     }

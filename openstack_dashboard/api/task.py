@@ -2,42 +2,30 @@ import time
 import threading
 import sqlite3
 
-
 from keystoneauth1 import identity
 from keystoneauth1 import session
 from novaclient import client as nova_client
 from zunclient import client as zun_client
-# from glanceclient import client as glance_client
 from neutronclient.v2_0 import client as neutron_client
 
-
-# from horizon.utils.memoized import memoized
-# from openstack_dashboard.contrib.developer.profiler import api as profiler
-
-# from openstack_dashboard.api._nova import novaclient
-# from zun_ui.api.client import zunclient, neutronclient
+from openstack_dashboard.api.scaling import Stack
 
 
-table_name = 'tasks'
-
-
-# @memoized
-# def taskclient(request):
-#     if request.DATA.virtualization == 'Virtual Machine':
-#         return novaclient(request)
-#     elif request.DATA.virtualization == 'Docker':
-#         return zunclient(request)
-
-
-# @profiler.trace
-# def task_create(request):
-#     pass
-#     # return taskclient(request).services.
-
-
-# @profiler.trace
-# def task_delete(request, task_id):
-#     return taskclient(request).tasks.delete(task_id)
+def get_credential(admin_openrc):
+    credential = {}
+    with open(admin_openrc, 'r') as f:
+        for line in f.readlines():
+            data = line.split()[1]
+            k, v = data.split('=', 1)
+            credential[k[3:].lower()] = v
+    return {
+        'username': credential['username'],
+        'password': credential['password'],
+        'project_name': credential['project_name'],
+        'project_domain_name': credential['project_domain_name'],
+        'user_domain_name': credential['user_domain_name'],
+        'auth_url': credential['auth_url'],
+    }
 
 
 class Schedule(threading.Thread):
@@ -45,13 +33,14 @@ class Schedule(threading.Thread):
     def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
         super(Schedule, self).__init__()
         auth = identity.Password(
-            **self.get_credential(admin_openrc=admin_openrc))
+            **get_credential(admin_openrc=admin_openrc))
         sess = session.Session(auth=auth)
         # self.glance = glance_client.Client(version='2', session=sess)
         self.nova = nova_client.Client(version='2', session=sess)
         self.zun = zun_client.Client(version='1', session=sess)
         self.neutron = neutron_client.Client(session=sess)
         self.hypervisors = self.nova.hypervisors.list()
+        self.admin_openrc = admin_openrc
 
     def run(self):
         time.sleep(10)
@@ -66,12 +55,21 @@ class Schedule(threading.Thread):
                 image = self.get_image()
                 name = image.name
                 flavor = self.get_flavor(task)
-                userdata = task['job']
-                meta = {'task_name': task['name']}
-                nics = [{'net-id': self.get_network_id()}]
+                network = self.get_network()
+                nics = [{'net-id': network['id']}]
                 key_name = self.get_keypair()
+                task_name = task['name']
+                meta = {'task_name': task_name}
+                user_data = task['job']
                 self.check_resources(flavor.vcpus, flavor.ram, flavor.disk)
-                self.run_server(name, image, flavor, userdata, meta, nics, key_name)
+                if task['auto_scaling'] == 'Yes':
+                    stack = Stack(admin_openrc=self.admin_openrc)
+                    stack.setup_parameters(name, image.name, flavor.name,
+                                network['name'], key_name, task, user_data)
+                    stack.launch()
+                else:
+                    self.run_server(name, image, flavor, user_data,
+                                    meta, nics, key_name)
             elif task['virtualization'] == 'Docker':
                 name = task['name']
                 image = 'ubuntu'
@@ -79,7 +77,10 @@ class Schedule(threading.Thread):
                 cpu = task['cpu']
                 memory = task['ram']
                 self.check_resources(cpu, memory, 1)
-                self.run_container(name, image, command, cpu, memory)
+                container = self.run_container(name, image, command,
+                                               cpu, memory)
+                if task['auto_scaling'] == 'Yes':
+                    self.tasks.add_autoscaling_container(container.uuid)
             self.tasks.update_status(task['id'], 'finished')
 
     def get_image(self):
@@ -101,14 +102,14 @@ class Schedule(threading.Thread):
                 break
         return flavor
 
-    def get_network_id(self):
+    def get_network(self):
         networks = self.neutron.list_networks()['networks']
         network = networks[0]
         for item in networks:
             if not item['router:external']:
                 network = item
                 break
-        return network['id']
+        return network
 
     def get_keypair(self):
         keypairs = self.nova.keypairs.list()
@@ -119,30 +120,14 @@ class Schedule(threading.Thread):
                 break
         return keypair
 
-    def get_credential(self, admin_openrc):
-        credential = {}
-        with open(admin_openrc, 'r') as f:
-            for line in f.readlines():
-                data = line.split()[1]
-                k, v = data.split('=', 1)
-                credential[k[3:].lower()] = v
-        return {
-            'username': credential['username'],
-            'password': credential['password'],
-            'project_name': credential['project_name'],
-            'project_domain_name': credential['project_domain_name'],
-            'user_domain_name': credential['user_domain_name'],
-            'auth_url': credential['auth_url'],
-        }
-
-    def run_server(self, name, image, flavor, userdata, meta, nics, key_name):
+    def run_server(self, name, image, flavor, user_data, meta, nics, key_name):
         self.nova.servers.create(name=name, image=image, flavor=flavor,
-                                 userdata=userdata, meta=meta, nics=nics,
+                                 userdata=user_data, meta=meta, nics=nics,
                                  key_name=key_name)
 
     def run_container(self, name, image, command, cpu, memory):
-        self.zun.containers.run(name=name, image=image, command=command,
-                                   cpu=cpu, memory=memory)
+        return self.zun.containers.run(name=name, image=image, command=command,
+                                       cpu=cpu, memory=memory)
 
     def check_resources(self, cpu, ram, disk):
         flag = False
@@ -184,6 +169,7 @@ class Tasks(object):
                                      main_job character(128) not null,
                                      require_hardware character(4) not null,
                                      priority int not null,
+                                     auto_scaling character(4) not null,
                                      created_timestamp real not null)'''
                                      % self.table_name)
         self.cursor.execute(''' select count(name) from sqlite_master
@@ -195,6 +181,13 @@ class Tasks(object):
                                      not null) ''')
             self.cursor.execute(''' insert into config (precedence_schema)
                                     values ('Execution time') ''')
+        self.cursor.execute(''' select count(name) from sqlite_master 
+                                where type='table' and 
+                                name='autoscaling_containers' ''')
+        if self.cursor.fetchone()[0] == 0:
+            self.cursor.execute(''' create table autoscaling_containers
+                                    (id integer primary key autoincrement,
+                                     uuid character(50) not null) ''')
         self.conn.commit()
 
     def add(self, data):
@@ -211,9 +204,10 @@ class Tasks(object):
                                 main_job,
                                 require_hardware,
                                 priority,
+                                auto_scaling,
                                 created_timestamp
                                 ) values 
-                                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) '''
+                                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) '''
                             % self.table_name,
                             (data['name'],
                              data['status'],
@@ -227,12 +221,13 @@ class Tasks(object):
                              data['main_job'],
                              data['require_hardware'],
                              data['priority'],
+                             data['auto_scaling'],
                              data['created_timestamp']
                             ))
         self.conn.commit()
 
     def delete(self, task_id):
-        self.cursor.execute(''' delete from %s where id=?'''
+        self.cursor.execute(''' delete from %s where id=? '''
                                 % self.table_name, (task_id,))
         self.conn.commit()
 
@@ -251,7 +246,7 @@ class Tasks(object):
             task = tasks[0]
             tasks = [item for item in tasks if item[12] == task[12]]
             for item in tasks:
-                if item[13] < task[13]:
+                if item[14] < task[14]:
                     task = item
         elif precedence_schema == 'Waiting time':
             self.cursor.execute(''' select * from %s where status='ready'
@@ -306,7 +301,8 @@ class Tasks(object):
             'main_job': task[10],
             'require_hardware': task[11],
             'priority': task[12],
-            'created_timestamp': task[13]
+            'auto_scaling': task[13],
+            'created_timestamp': task[14]
         }
 
     def update_status(self, task_id, status):
@@ -324,6 +320,21 @@ class Tasks(object):
         config_id = self.cursor.fetchone()[0]
         self.cursor.execute(''' update config set precedence_schema='%s' where
                                 id=%s ''' % (precedence_schema, config_id))
+        self.conn.commit()
+
+    def get_autoscaling_containers(self):
+        self.cursor.execute(''' select * from autoscaling_containers ''')
+        containers = self.cursor.fetchall()
+        return [item[1] for item in containers]
+
+    def add_autoscaling_container(self, uuid):
+        self.cursor.execute(''' insert into autoscaling_containers (uuid)
+                                values (?) ''', (uuid,))
+        self.conn.commit()
+
+    def delete_autoscaling_container(self, uuid):
+        self.cursor.execute(''' delete from autoscaling_containers where
+                                uuid=? ''', (uuid,))
         self.conn.commit()
 
     def __del__(self):
