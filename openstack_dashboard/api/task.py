@@ -12,10 +12,13 @@ from openstack_dashboard.api.task_common import get_credential
 from openstack_dashboard.api.task_common import Tasks
 from openstack_dashboard.api.scaling import Stack
 
+from openstack_dashboard.api import task_common
+admin_openrc = task_common.admin_openrc
+
 
 class Schedule(threading.Thread):
 
-    def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
+    def __init__(self):
         super(Schedule, self).__init__()
         auth = identity.Password(
             **get_credential(admin_openrc=admin_openrc))
@@ -25,7 +28,6 @@ class Schedule(threading.Thread):
         self.zun = zun_client.Client(version='1', session=sess)
         self.neutron = neutron_client.Client(session=sess)
         self.hypervisors = self.nova.hypervisors.list()
-        self.admin_openrc = admin_openrc
 
     def run(self):
         time.sleep(10)
@@ -48,7 +50,7 @@ class Schedule(threading.Thread):
                 user_data = task['job']
                 self.check_resources(flavor.vcpus, flavor.ram, flavor.disk)
                 if task['auto_scaling'] == 'Yes':
-                    stack = Stack(admin_openrc=self.admin_openrc)
+                    stack = Stack(admin_openrc=admin_openrc)
                     stack.setup_parameters(name, image.name, flavor.name,
                                 network['name'], key_name, task_name, user_data)
                     stack.launch()

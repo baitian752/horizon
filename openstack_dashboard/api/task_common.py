@@ -1,6 +1,9 @@
 import sqlite3
 
 
+admin_openrc = '/etc/openstack-dashboard/admin-openrc.sh'
+
+
 def get_credential(admin_openrc):
     credential = {}
     with open(admin_openrc, 'r') as f:

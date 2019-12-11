@@ -13,6 +13,9 @@ from zunclient import client as zun_client
 from openstack_dashboard.api.task_common import get_credential
 from openstack_dashboard.api.task_common import Tasks
 
+from openstack_dashboard.api import task_common
+admin_openrc = task_common.admin_openrc
+
 
 stack_template = {
     'files': {},
@@ -176,7 +179,7 @@ class UTC(datetime.tzinfo):
 
 class Stack(object):
 
-    def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
+    def __init__(self):
         auth = identity.Password(**get_credential(
                                  admin_openrc=admin_openrc))
         sess = session.Session(auth=auth)
@@ -202,7 +205,7 @@ class Scaling(threading.Thread):
 
     fetch_option = '(/ (metric cpu rate:mean) %s)'
 
-    def __init__(self, admin_openrc='/etc/kolla/admin-openrc.sh'):
+    def __init__(self):
         super(Scaling, self).__init__()
         auth = identity.Password(**get_credential(
                                  admin_openrc=admin_openrc))

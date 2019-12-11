@@ -65,5 +65,5 @@ class Priority(generic.View):
     def get(self, request):
         return {
             'precedence_schema': \
-                api.task.Tasks(api.task.table_name).get_precedence_schema()
+                api.task.Tasks('tasks').get_precedence_schema()
         }
