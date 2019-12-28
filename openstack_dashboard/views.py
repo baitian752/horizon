@@ -35,6 +35,17 @@ LOG = logging.getLogger(__name__)
 MESSAGES_PATH = getattr(settings, 'MESSAGES_PATH', None)
 
 
+class Index(TemplateView):
+    template_name = 'home/index.html'
+
+    def get_context_data(self, **kwargs):
+        return {}
+
+# def index(request):
+#     if request.user.is_authenticated:
+#         response = shortcuts.redirect('/project/')
+
+
 def get_user_home(user):
     dashboard = horizon.get_default_dashboard()
     return dashboard.get_absolute_url()

@@ -72,6 +72,7 @@ def login(request, template_name=None, extra_context=None, **kwargs):
     if request.method == 'POST':
         auth_type = request.POST.get('auth_type', 'credentials')
         if utils.is_websso_enabled() and auth_type != 'credentials':
+
             region_id = request.POST.get('region')
             auth_url = getattr(settings, 'WEBSSO_KEYSTONE_URL',
                                forms.get_region_endpoint(region_id))
@@ -190,6 +191,7 @@ def logout(request, login_url=None, **kwargs):
         see django.contrib.auth.views.logout_then_login extra parameters.
 
     """
+    login_url = '/'
     msg = 'Logging out user "%(username)s".' % \
         {'username': request.user.username}
     LOG.info(msg)

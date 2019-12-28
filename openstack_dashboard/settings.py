@@ -534,3 +534,4 @@ if DEBUG:
 # Here comes the Django settings deprecation section. Being at the very end
 # of settings.py allows it to catch the settings defined in local_settings.py
 # or inside one of local_settings.d/ snippets.
+STATICFILES_DIRS.append(os.path.join(ROOT_PATH, 'templates/home'))

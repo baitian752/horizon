@@ -36,7 +36,8 @@ from openstack_dashboard.api import rest
 from openstack_dashboard import views
 
 urlpatterns = [
-    url(r'^$', views.splash, name='splash'),
+    url(r'^$', views.Index.as_view(), name='index'),
+    # url(r'^login/', views.splash, name='splash'),
     url(r'^api/', include(rest.urls)),
     url(r'^header/', views.ExtensibleHeaderView.as_view()),
     url(r'', horizon.base._wrapped_include(horizon.urls)),
