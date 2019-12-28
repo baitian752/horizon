@@ -36,7 +36,7 @@ MESSAGES_PATH = getattr(settings, 'MESSAGES_PATH', None)
 
 
 class Index(TemplateView):
-    template_name = 'home/index.html'
+    template_name = 'index.html'
 
     def get_context_data(self, **kwargs):
         return {}
