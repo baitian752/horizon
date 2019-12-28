@@ -43,3 +43,5 @@ tags
 ghostdriver.log
 .idea
 package-lock.json
+tasks.db
+.vscode
