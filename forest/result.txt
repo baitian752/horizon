@@ -1,0 +1,15 @@
+gnocchi: 'measures showcpu --resource-idbaa551de-dd5c-4dbb-bb29-beafd90eaab6' is not a gnocchi command. See 'gnocchi --help'.
+Did you mean one of these?
+  measures add
+  measures aggregation
+  measures batch-metrics
+  measures batch-resources-metrics
+  measures show
+  resource batch delete
+  resource create
+  resource delete
+  resource history
+  resource list
+  resource search
+  resource show
+  resource update

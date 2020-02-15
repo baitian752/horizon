@@ -32,6 +32,7 @@ from openstack_dashboard.api.rest import policy
 from openstack_dashboard.api.rest import swift
 from openstack_dashboard.api.rest import task
 from openstack_dashboard.api.rest import scaling
+from openstack_dashboard.api.rest import prediction
 
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     'swift',
     'task',
     'scaling',
+    'prediction',
 ]

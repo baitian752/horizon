@@ -72,3 +72,6 @@ def forest_t():
         if y_pred[i] == 1:
             insid.append(i)
     return insid
+
+
+forest_t()

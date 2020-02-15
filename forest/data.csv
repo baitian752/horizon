@@ -1,4 +1,4 @@
-cpu_usage,vcpus,memory.usage,disk.ephemeral.size,disk.root.size,compute.instance.booting.time,Outcome
+cpu_usage,vcpus,memory.usage,disk.ephemeral.size,disk.root.size,compute.instance.booting.time,outcome
 29.21,1.0,25.0,0.0,1.0,15.85,0
 28.33,1.0,25.0,0.0,3.0,18.80,0
 88.05,3.0,25.0,0.0,1.0,11.55,0

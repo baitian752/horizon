@@ -41,6 +41,7 @@ from openstack_dashboard.api import nova
 from openstack_dashboard.api import swift
 from openstack_dashboard.api import task
 from openstack_dashboard.api import scaling
+from openstack_dashboard.api import prediction
 
 
 __all__ = [
@@ -54,4 +55,5 @@ __all__ = [
     "swift",
     "task",
     "scaling",
+    "prediction",
 ]

@@ -59,6 +59,11 @@ class ProjectOverview(usage.ProjectUsageView):
     template_name = 'project/overview/usage.html'
     csv_response_class = ProjectUsageCsvRenderer
 
+    # def get_context_data(self, **kwargs):
+    #     context = super(ProjectOverview, self).get_context_data(**kwargs)
+    #     context['baitian'] = 'BAITIAN'
+    #     return context
+
     def get_data(self):
         super(ProjectOverview, self).get_data()
         return self.usage.get_instances()

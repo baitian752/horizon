@@ -1,0 +1,83 @@
+{% load i18n horizon %}
+
+{% spaceless %}
+<!-- <script src='{{ STATIC_URL }}horizon/lib/jquery/jquery.js'></script> -->
+<script src='{{ STATIC_URL }}js/echarts.min.js'></script>
+
+<div id="usage"></div>
+
+<script type="text/javascript">
+
+  $.ajax({
+    url: '/api/prediction',
+    method: 'GET',
+    dataType: 'json',
+    success: function (res) {
+      var usage = document.getElementById('usage');
+      usage.style = `min-height: ${300 * res.length}px;`;
+      
+      var style = 'width: 100%; min-height: 300px;';
+      var charts = [];
+      for (var item of res) {
+        var e = document.createElement('div');
+        e.style = style;
+        usage.appendChild(e);
+        var chart = echarts.init(e);
+        var option = {
+          title: {
+            text: item.name,
+            fontWeight: 'lighter',
+            link: `/project/instances/${item.id}`,
+            target: 'blank',
+            textStyle: {
+              // color: 'blue'
+            }
+          },
+          tooltip: {},
+          legend: {
+            data: ['Fault Probability', 'CPU Usage', 'Memory Usage']
+          },
+          xAxis: {
+            type: 'category',
+            data: item.data.times
+          },
+          yAxis: {
+            type: 'value',
+            min: 0,
+            // max: 100'
+          },
+          series: [{
+            name: 'Fault Probability',
+            type: 'line',
+            data: item.data.y
+          }, {
+            name: 'CPU Usage',
+            type: 'line',
+            data: item.data.cpu_usage
+          }, {
+            name: 'Memory Usage',
+            type: 'line',
+            data: item.data.memory_usage
+          }]
+        };
+
+        chart.setOption(option);
+        charts.push(chart);
+        
+      }
+
+      $(window).resize(function () {
+        for (var chart of charts) {
+          chart.resize();
+        }
+        // charts.forEach((chart) => charts.resize());
+      });
+    }
+  });
+
+
+
+
+</script>
+
+{% endspaceless %}

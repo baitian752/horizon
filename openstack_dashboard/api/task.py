@@ -50,7 +50,7 @@ class Schedule(threading.Thread):
                 user_data = task['job']
                 self.check_resources(flavor.vcpus, flavor.ram, flavor.disk)
                 if task['auto_scaling'] == 'Yes':
-                    stack = Stack(admin_openrc=admin_openrc)
+                    stack = Stack()
                     stack.setup_parameters(name, image.name, flavor.name,
                                 network['name'], key_name, task_name, user_data)
                     stack.launch()

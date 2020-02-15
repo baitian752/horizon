@@ -3,6 +3,8 @@
 {% block title %}{% trans "Instance Overview" %}{% endblock %}
 
 {% block main %}
+  {% include "project/overview/prediction.html" %}
+
   {% include "horizon/common/_limit_summary.html" %}
 
   {% if simple_tenant_usage_enabled %}

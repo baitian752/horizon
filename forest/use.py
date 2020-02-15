@@ -46,28 +46,28 @@ for i in range(len(insid)):
 print(listid)
 
 
-mail_host = "smtp.qq.com"
-mail_user = "2842215855@qq.com"
-mail_pass = "msppwbwgajaydddj"
+# mail_host = "smtp.qq.com"
+# mail_user = "2842215855@qq.com"
+# mail_pass = "msppwbwgajaydddj"
 
-sender = '2842215855@qq.com'
-receivers = ['192917215@qq.com']
+# sender = '2842215855@qq.com'
+# receivers = ['192917215@qq.com']
 
-message = MIMEText('根据预测，以下的虚拟机有存在故障的风险：\n'+str(listid), 'plain', 'utf-8')
-message['From'] = Header("alarm", 'utf-8')
-message['To'] = Header("user", 'utf-8')
+# message = MIMEText('根据预测，以下的虚拟机有存在故障的风险：\n'+str(listid), 'plain', 'utf-8')
+# message['From'] = Header("alarm", 'utf-8')
+# message['To'] = Header("user", 'utf-8')
 
-subject = '故障预测'
-message['Subject'] = Header(subject, 'utf-8')
+# subject = '故障预测'
+# message['Subject'] = Header(subject, 'utf-8')
 
-if len(insid) != 0:
-    try:
-        smtpobj = smtplib.SMTP_SSL(mail_host, 465)
-        smtpobj.set_debuglevel(1)
-        smtpobj.login(mail_user, mail_pass)
-        smtpobj.sendmail(sender, receivers, message.as_string())
-        print("邮件发送成功")
-        smtpobj.quit()
-    except smtplib.SMTPException as e:
-        print("Error:无法发送邮件")
-        print(e)
+# if len(insid) != 0:
+#     try:
+#         smtpobj = smtplib.SMTP_SSL(mail_host, 465)
+#         smtpobj.set_debuglevel(1)
+#         smtpobj.login(mail_user, mail_pass)
+#         smtpobj.sendmail(sender, receivers, message.as_string())
+#         print("邮件发送成功")
+#         smtpobj.quit()
+#     except smtplib.SMTPException as e:
+#         print("Error:无法发送邮件")
+#         print(e)
