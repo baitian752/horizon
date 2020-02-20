@@ -1,17 +1,3 @@
-/**
- * Licensed under the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License. You may obtain
- * a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
-
 (function () {
   'use strict';
 
@@ -74,16 +60,6 @@
 
       var finalSpec = angular.copy(model.newInstanceSpec);
 
-      // $http({
-      //   url: "/api/tasks/",
-      //   method: "POST",
-      //   data: finalSpec
-      // }).success(function(response, status, headers, config) {
-      //   console.log(response);
-      // }).error(function(response) {
-      //   console.log(response);
-      // });
-
       return  apiService.post('/api/tasks/', finalSpec)
                 .success(function(response, status, headers, config) {
                   // console.log(response);
@@ -92,40 +68,6 @@
                   console.log(response);
                 })
                 .then(successMessage);
-
-      // console.log(JSON.stringify(finalSpec));
-      // alert(2333);
-
-      // if (finalSpec.virtualization === "Virtual Machine") {
-      //   return novaAPI.createServer(finalSpec).then(successMessage);
-      // } else {
-      //   return zunAPI.createContainer(
-      //             {
-      //               "name": finalSpec.meta.task_name,
-      //               "image": "ubuntu",
-      //               "image_driver": "docker",
-      //               "command": finalSpec.user_data,
-      //               "run": true,
-      //               "cpu": finalSpec.vcpus,
-      //               "memory": finalSpec.ram,
-      //               "auto_heal": false,
-      //               "mounts": [],
-      //               "security_groups": [
-      //                   "default"
-      //               ],
-      //               "interactive": true,
-      //               "hints": {},
-      //               // "disk": finalSpec.disk,
-      //               "nets": [],
-      //             }
-      //          ).then(function() {
-      //             var numberInstances = model.newInstanceSpec.instance_count;
-      //             var message = ngettext('Scheduled creation of %s container.',
-      //                                   'Scheduled creation of %s containers.',
-      //                                   numberInstances);
-      //             toast.add('info', interpolate(message, [numberInstances]));
-      //         });
-      // }
     }
 
     function successMessage() {

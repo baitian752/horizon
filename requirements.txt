@@ -71,3 +71,6 @@ XStatic-smart-table>=1.4.13.2 # MIT License
 XStatic-Spin>=1.2.5.2 # MIT License
 XStatic-term.js>=0.0.7.0 # MIT License
 XStatic-tv4>=1.2.7.0 # MIT
+numpy==1.16.5
+scipy==1.2.2
+scikit-learn==0.20.4

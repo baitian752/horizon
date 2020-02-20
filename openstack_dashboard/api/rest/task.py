@@ -37,23 +37,11 @@ class Tasks(generic.View):
 
     @rest_utils.ajax(data_required=True)
     def post(self, request):
-        # print '*' * 30
-        # print 'type(request): %s' % type(request)
-        # print 'request: %s' % request
-        # print 'type(request.DATA): %s' % type(request.DATA)
-        # print 'request.DATA: %s' % request.DATA
-        # print 'request.user: %s' % request.user
-        # print 'request.COOKIES: %s' % request.COOKIES
-        # print '*' * 30
         data = format_data(request.DATA)
         tasks = api.task.Tasks('tasks')
         tasks.update_precedence_schema(data['precedence_schema'])
         data.pop('precedence_schema')
         tasks.add(data)
-        # return {
-        #     '1': 2,
-        #     '3': 4
-        # }
 
 
 @urls.register

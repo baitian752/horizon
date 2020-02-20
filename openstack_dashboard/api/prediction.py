@@ -19,7 +19,6 @@ def gen_model(datapath, modelpath):
 
     from sklearn.model_selection import train_test_split
     from sklearn.ensemble import RandomForestClassifier
-    # from sklearn.metrics import accuracy_score
 
     data = np.loadtxt(datapath, delimiter=',', skiprows=1)
     X = data[:, 0:-1]

@@ -1,18 +1,3 @@
-# Copyright 2012 Nebula, Inc.
-#
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
-
-
 import logging
 
 from django.conf import settings
@@ -1258,47 +1243,24 @@ class InstancesTable(tables.DataTable):
         ("shelved", True),
         ("shelved_offloaded", True),
     )
-    task = tables.WrappingColumn(lambda server: server.metadata.get("task_name", "None"),
-                                 link=None,
-                                 verbose_name=_("Task Name"))
+    task = tables.WrappingColumn(lambda server: \
+        server.metadata.get("task_name", "None"),
+        link=None, verbose_name=_("Task Name"))
     name = tables.WrappingColumn("name",
                                  link=get_server_detail_link,
                                  verbose_name=_("Instance Name"))
-    # image_name = tables.WrappingColumn("image_name",
-    #                                    verbose_name=_("Image Name"))
     ip = tables.Column(get_ips,
                        verbose_name=_("IP Address"),
                        attrs={'data-type': "ip"})
     flavor = tables.Column(get_flavor,
                            sortable=False,
                            verbose_name=_("Flavor"))
-    # keypair = tables.Column(get_keyname, verbose_name=_("Key Pair"))
     status = tables.Column("status",
                            filters=(title, filters.replace_underscores),
                            verbose_name=_("Status"),
                            status=True,
                            status_choices=STATUS_CHOICES,
                            display_choices=STATUS_DISPLAY_CHOICES)
-    # locked = tables.Column(render_locked,
-    #                        verbose_name="",
-    #                        sortable=False)
-    # az = tables.Column("availability_zone",
-    #                    verbose_name=_("Availability Zone"))
-    # task = tables.Column("OS-EXT-STS:task_state",
-    #                      verbose_name=_("Task"),
-    #                      empty_value=TASK_DISPLAY_NONE,
-    #                      status=True,
-    #                      status_choices=TASK_STATUS_CHOICES,
-    #                      display_choices=TASK_DISPLAY_CHOICES)
-    # state = tables.Column(get_power_state,
-    #                       filters=(title, filters.replace_underscores),
-    #                       verbose_name=_("Power State"),
-    #                       display_choices=POWER_DISPLAY_CHOICES)
-    # created = tables.Column("created",
-    #                         verbose_name=_("Age"),
-    #                         filters=(filters.parse_isotime,
-    #                                  filters.timesince_sortable),
-    #                         attrs={'data-type': 'timesince'})
 
     class Meta(object):
         name = "tasks"
