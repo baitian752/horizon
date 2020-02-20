@@ -2,6 +2,7 @@ import sqlite3
 
 
 admin_openrc = '/etc/openstack-dashboard/admin-openrc.sh'
+database = 'openstack_dashboard/local/data/tack.db'
 
 
 def get_credential(admin_openrc):
@@ -25,7 +26,7 @@ class Tasks(object):
 
     def __init__(self, table_name):
         self.table_name = table_name
-        self.conn = sqlite3.connect('tasks.db')
+        self.conn = sqlite3.connect(database)
         self.cursor = self.conn.cursor()
         self.create_table()
 

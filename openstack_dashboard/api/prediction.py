@@ -25,21 +25,9 @@ def gen_model(datapath, modelpath):
     X = data[:, 0:-1]
     y = data[:, -1]
 
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, \
-    #     test_size=0.33, random_state=np.random.randint(0, 99))
-
-    # X_train, y_train = X, y
     rfc = RandomForestClassifier(n_estimators=100, \
         random_state=np.random.randint(0, 99))
     rfc.fit(X, y)
-    # print(rfc.predict(X_test))
-    # print(rfc.predict_proba(X_test))
-
-    # y_train_pred = rfc.predict(X_train)
-    # y_test_pred = rfc.predict(X_test)
-
-    # print(accuracy_score(y_train, y_train_pred))
-    # print(accuracy_score(y_test, y_test_pred))
 
     joblib.dump(rfc, modelpath)
 
@@ -54,24 +42,6 @@ rfc = joblib.load(modelpath)
 
 gmt8 = pytz.timezone('Asia/Shanghai')
 get_microversion = _nova.get_microversion
-# admin_openrc = '/etc/openstack-dashboard/admin-openrc.sh'
-
-
-# def get_credential(admin_openrc):
-#     credential = {}
-#     with open(admin_openrc, 'r') as f:
-#         for line in f.readlines():
-#             data = line.split()[1]
-#             k, v = data.split('=', 1)
-#             credential[k[3:].lower()] = v
-#     return {
-#         'username': credential['username'],
-#         'password': credential['password'],
-#         'project_name': credential['project_name'],
-#         'project_domain_name': credential['project_domain_name'],
-#         'user_domain_name': credential['user_domain_name'],
-#         'auth_url': credential['auth_url'],
-#     }
 
 
 def get_auth_params_from_request(request):
@@ -95,7 +65,6 @@ def gnocchiclient(request):
         token_id,
         auth_url
     ) = get_auth_params_from_request(request)
-    # auth = identity.Password(**get_credential(admin_openrc=admin_openrc))
     auth = identity.Token(auth_url=auth_url, token=token_id, \
         project_name=username, project_domain_name=domain_name)
     sess = session.Session(auth=auth)
@@ -116,9 +85,13 @@ def get_data(request):
 
     data = []
     for server in nova.servers.list():
+        metrics = gnocchi.resource.get('instance', server.id)['metrics'].keys()
+        if not set(['cpu', 'memory.usage', 'compute.instance.booting.time']) \
+            .issubset(set(metrics)):
+            continue
         created = datetime.strptime(server.created, '%Y-%m-%dT%H:%M:%SZ')
         delta = datetime.now(pytz.utc) - pytz.utc.localize(created)
-        if delta.total_seconds() < 600:
+        if delta.total_seconds() < 1300:
             continue
         flavor = nova.flavors.get(server.flavor['id'])
         vcpus = flavor.vcpus
@@ -159,24 +132,6 @@ def get_data(request):
 
         cn = len(cpu_usage)
         mn = len(memory_usage)
-
-        # if cn > mn:
-        #     memory_usage = gnocchi.aggregates.fetch(operations= \
-        #         '(metric memory.usage mean)', search='id=%s' % server.id) \
-        #         ['measures'][server.id]['memory.usage']['mean'][1:]
-        #     mn = len(memory_usage)
-        # elif cn < mn:
-        #     cpu_usage = gnocchi.aggregates.fetch(operations= \
-        #         '(/ (metric cpu rate:mean) %s)' % divisor, search='id=%s' \
-        #         % server.id)['measures'][server.id]['cpu']['rate:mean']
-        #     cn = len(cpu_usage)
-
-        # memory_usage = gnocchi.aggregates.fetch(operations= \
-        #         '(metric memory.usage mean)', search='id=%s' % server.id) \
-        #         ['measures'][server.id]['memory.usage']['mean']
-        # cpu_usage = gnocchi.aggregates.fetch(operations= \
-        #         '(/ (metric cpu rate:mean) %s)' % divisor, search='id=%s' \
-        #         % server.id)['measures'][server.id]['cpu']['rate:mean']
 
         if cn > 100:
             cpu_usage = cpu_usage[-100:]
