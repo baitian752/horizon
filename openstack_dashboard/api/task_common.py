@@ -2,7 +2,7 @@ import sqlite3
 
 
 admin_openrc = '/etc/openstack-dashboard/admin-openrc.sh'
-database = 'openstack_dashboard/local/data/tack.db'
+database = 'openstack_dashboard/local/data/task.db'
 
 
 def get_credential(admin_openrc):
